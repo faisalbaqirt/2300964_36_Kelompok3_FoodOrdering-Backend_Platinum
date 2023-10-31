@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "NODE_ENV=production npx knex migrate:latest && npx knex seed:run && node index.js",
+    "start": "NODE_ENV=production npx knex migrate:latest && node index.js",
     "test": "jest --detectOpenHandles"
   },
   "keywords": [],
