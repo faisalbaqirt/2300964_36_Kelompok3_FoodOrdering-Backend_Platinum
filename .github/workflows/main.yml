@@ -13,7 +13,7 @@ jobs:
       - name: build test
         run: |
           npm install
-          NODE_ENV=test npm run test
+          DB_CONNECTION_TEST="${{ secrets.DB_CONNECTION_TEST }}" NODE_ENV=test npm run test
 
       - name: deploy
         if: github.ref == 'refs/heads/master'

@@ -65,7 +65,7 @@ module.exports = {
   test: {
     client: 'postgresql',
     connection: {
-      connectionString: process.env.DB_CONNECTION_PROD,
+      connectionString: process.env.DB_CONNECTION_TEST,
       ssl: { rejectUnauthorized: false }
     },
     pool: {
