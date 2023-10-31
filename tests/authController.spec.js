@@ -205,7 +205,7 @@ describe("getUserById Function", () => {
 
     expect(res.json).toHaveBeenCalledWith({
       status: 404,
-      message: "Produk tidak ditemukan!",
+      message: "User tidak ditemukan!",
     });
   });
 

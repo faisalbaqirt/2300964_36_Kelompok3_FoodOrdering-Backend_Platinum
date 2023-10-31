@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "NODE_ENV=production npx knex migrate:latest && node index.js",
-    "test": "jest --detectOpenHandles"
+    "test": "cross-env NODE_ENV=test && jest --detectOpenHandles"
   },
   "keywords": [],
   "author": "",
@@ -28,6 +28,7 @@
     "swagger-ui-express": "^5.0.0"
   },
   "devDependencies": {
-    "concurrently": "^8.2.1"
+    "concurrently": "^8.2.1",
+    "cross-env": "^7.0.3"
   }
 }

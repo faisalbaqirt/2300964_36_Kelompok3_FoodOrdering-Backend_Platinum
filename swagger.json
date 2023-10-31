@@ -6,7 +6,7 @@
     "description": "Food Ordering adalah hasil platinum challenge dari kelompok 3 FSW 36 Binar Academy. Selamat datang di API Food Ordering Ayam Geprek Mang Iyok, pintu gerbang Anda ke dunia pemesanan ayam geprek yang lezat. API ini menyediakan beragam titik akhir (end point) untuk mengelola produk dan pesanan. Anda dapat menjelajahi menu, melakukan pemesanan, dan mengelola pesanan makanan Anda dengan mudah. Baik Anda seorang pelanggan atau administrator, API ini telah siap melayani Anda. Silakan merujuk ke deskripsi titik akhir spesifik untuk petunjuk penggunaan yang lebih detail."
   },
   "schemes": [
-    "http"
+    "https"
   ],
   "basePath": "/api",
   "securityDefinitions": {
