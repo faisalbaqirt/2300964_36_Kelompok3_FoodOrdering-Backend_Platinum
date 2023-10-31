@@ -13,7 +13,7 @@ jobs:
       - name: build test
         run: |
           npm install
-          npm run test
+          NODE_ENV=test npm run test
 
       - name: deploy
         if: github.ref == 'refs/heads/master'
