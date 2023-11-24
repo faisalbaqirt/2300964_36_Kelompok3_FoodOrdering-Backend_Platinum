@@ -18,6 +18,9 @@ app.use((req, res, next) => {
 });
 app.use(passport.initialize());
 
+const simulationRoutes = require("./routes/SimulationRoute");
+app.use("/api/simulation", simulationRoutes);
+
 const productRoutes = require("./routes/ProductRoute");
 app.use("/api/products", productRoutes);
 

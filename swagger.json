@@ -8,7 +8,7 @@
   "schemes": [
     "https"
   ],
-  "basePath": "/api",
+  "basePath": "/api/simulation",
   "securityDefinitions": {
     "BearerAuth": {
       "type": "apiKey",
@@ -17,7 +17,7 @@
     }
   },
   "paths": {
-    "/auth/register": {
+    "/register": {
       "post": {
         "tags": [
           "Authentication"
@@ -70,7 +70,7 @@
         }
       }
     },
-    "/auth/login": {
+    "/login": {
       "post": {
         "tags": [
           "Authentication"
@@ -131,7 +131,7 @@
         }
       }
     },
-    "/auth/users": {
+    "/users": {
       "get": {
         "tags": [
           "Authentication"
@@ -185,7 +185,7 @@
         ]
       }
     },
-    "/auth/users/{id}": {
+    "/users/{id}": {
       "get": {
         "tags": [
           "Authentication"
@@ -235,6 +235,76 @@
                       }
                     }
                   }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/profile/{id}": {
+      "put": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Update a user's profile by ID",
+        "description": "Update a user's profile by its ID with Authorization.",
+        "consumes": [
+          "multipart/form-data"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "description": "User ID",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "in": "formData",
+            "name": "username",
+            "type": "string"
+          },
+          {
+            "in": "formData",
+            "name": "email",
+            "type": "string"
+          },
+          {
+            "in": "formData",
+            "name": "name",
+            "type": "string"
+          },
+          {
+            "in": "formData",
+            "name": "password",
+            "type": "string"
+          },
+          {
+            "in": "formData",
+            "name": "photo",
+            "type": "file"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "integer"
+                },
+                "message": {
+                  "type": "string"
                 }
               }
             }

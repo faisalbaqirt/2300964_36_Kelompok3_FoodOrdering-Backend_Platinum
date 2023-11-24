@@ -1,11 +1,20 @@
-const ProductModel = require("../models/ProductModel");
 const cloudinaryService = require("../services/cloudinaryService");
 const fs = require("fs");
 
 class ProductController {
+  constructor(model, db) {
+    this.model = model;
+    this.db = db;
+  }
+
+  setFolderName(req) {
+    const isSimulation = req.originalUrl.includes("/simulation/products");
+    return isSimulation ? "product-simulation" : "products";
+  }
+
   async getAllProducts(req, res) {
     try {
-      const data = await ProductModel.getAllProducts();
+      const data = await this.model.getAllProducts();
       res.status(200).json({ status: 200, data });
     } catch (error) {
       res.status(500).json({ status: 500, message: error.message });
@@ -14,7 +23,7 @@ class ProductController {
 
   async getProductById(req, res) {
     try {
-      const data = await ProductModel.getProductById(req.params.id);
+      const data = await this.model.getProductById(req.params.id);
       if (!data) {
         res
           .status(404)
@@ -31,8 +40,8 @@ class ProductController {
       const { name, description, price } = req.body;
       const image = req.file.path;
 
-      // upload gambar ke Cloudinary ke dalam folder 'products'
-      const folderName = "products";
+      // upload gambar ke Cloudinary
+      const folderName = this.setFolderName(req);
       const imageURL = await cloudinaryService.uploadCloudinary(
         image,
         folderName
@@ -40,7 +49,7 @@ class ProductController {
 
       fs.unlinkSync(image);
       // menyimpan data produk ke database
-      await ProductModel.createProduct({
+      await this.model.createProduct({
         name,
         description,
         price,
@@ -50,7 +59,10 @@ class ProductController {
       res.status(201).json({
         status: 201,
         message: "Produk berhasil ditambahkan!",
-        imageURL,
+        name: name,
+        description: description,
+        price: price,
+        image: imageURL,
       });
     } catch (error) {
       res.status(500).json({ status: 500, message: error.message });
@@ -62,15 +74,15 @@ class ProductController {
       const { name, description, price } = req.body;
       const image = req.file.path;
 
-      // upload gambar ke Cloudinary ke dalam folder 'products'
-      const folderName = "products";
+      // upload gambar ke Cloudinary
+      const folderName = this.setFolderName(req);
       const imageURL = await cloudinaryService.uploadCloudinary(
         image,
         folderName
       );
 
       fs.unlinkSync(image);
-      await ProductModel.updateProduct(
+      await this.model.updateProduct(
         req.params.id,
         name,
         description,
@@ -78,9 +90,15 @@ class ProductController {
         imageURL
       );
 
-      res
-        .status(201)
-        .json({ status: 201, message: "Produk berhasil diperbarui!" });
+      res.status(201).json({
+        status: 201,
+        message: "Produk berhasil diperbarui!",
+        product_id: req.params.id,
+        name: name,
+        description: description,
+        price: price,
+        image: imageURL,
+      });
     } catch (error) {
       res.status(500).json({ status: 500, message: error.message });
     }
@@ -88,14 +106,16 @@ class ProductController {
 
   async deleteProduct(req, res) {
     try {
-      const id = await ProductModel.deleteProduct(req.params.id);
-      res
-        .status(201)
-        .json({ status: 201, message: "Produk berhasil dihapus!" });
+      const id = await this.model.deleteProduct(req.params.id);
+      res.status(201).json({
+        status: 201,
+        id: req.params.id,
+        message: "Produk berhasil dihapus!",
+      });
     } catch (error) {
       res.status(500).json({ status: 500, message: error.message });
     }
   }
 }
 
-module.exports = new ProductController();
+module.exports = ProductController;
