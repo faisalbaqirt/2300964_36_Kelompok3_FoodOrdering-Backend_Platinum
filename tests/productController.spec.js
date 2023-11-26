@@ -1,4 +1,3 @@
-const ProductModel = require("../models/ProductModel");
 const ProductController = require("../controllers/ProductController");
 
 describe("ProductController - getAllProducts", () => {
@@ -22,7 +21,11 @@ describe("ProductController - getAllProducts", () => {
       },
     ];
 
-    ProductModel.getAllProducts = jest.fn().mockResolvedValue(mockProducts);
+    const mockModel = {
+      getAllProducts: jest.fn().mockResolvedValue(mockProducts),
+    };
+
+    const productController = new ProductController(mockModel, {});
 
     const req = {};
     const res = {
@@ -30,7 +33,7 @@ describe("ProductController - getAllProducts", () => {
       status: jest.fn().mockReturnThis(),
     };
 
-    await ProductController.getAllProducts(req, res);
+    await productController.getAllProducts(req, res);
 
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith({ status: 200, data: mockProducts });
@@ -38,9 +41,11 @@ describe("ProductController - getAllProducts", () => {
 
   test("should return a JSON response with a status of 500 when there is an error", async () => {
     const errorMessage = "An error occurred";
-    ProductModel.getAllProducts = jest
-      .fn()
-      .mockRejectedValue(new Error(errorMessage));
+    const mockModel = {
+      getAllProducts: jest.fn().mockRejectedValue(new Error(errorMessage)),
+    };
+
+    const productController = new ProductController(mockModel, {});
 
     const req = {};
     const res = {
@@ -48,7 +53,7 @@ describe("ProductController - getAllProducts", () => {
       status: jest.fn().mockReturnThis(),
     };
 
-    await ProductController.getAllProducts(req, res);
+    await productController.getAllProducts(req, res);
 
     expect(res.status).toHaveBeenCalledWith(500);
     expect(res.json).toHaveBeenCalledWith({
@@ -69,7 +74,11 @@ describe("ProductController - getProductById", () => {
       image:
         "https://res.cloudinary.com/dg1vhnf5g/image/upload/v1697878704/products/ayamgeprek1_n7o1rv.jpg",
     };
-    ProductModel.getProductById = jest.fn().mockResolvedValue(mockProduct);
+    const mockModel = {
+      getProductById: jest.fn().mockResolvedValue(mockProduct),
+    };
+
+    const productController = new ProductController(mockModel, {});
 
     const req = { params: { id: 1 } };
     const res = {
@@ -77,14 +86,18 @@ describe("ProductController - getProductById", () => {
       status: jest.fn().mockReturnThis(),
     };
 
-    await ProductController.getProductById(req, res);
+    await productController.getProductById(req, res);
 
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith({ status: 200, data: mockProduct });
   });
 
   test("should return a JSON response with a status of 404 when the product is not found", async () => {
-    ProductModel.getProductById = jest.fn().mockResolvedValue(null);
+    const mockModel = {
+      getProductById: jest.fn().mockResolvedValue(null),
+    };
+
+    const productController = new ProductController(mockModel, {});
 
     const req = { params: { id: 1 } };
     const res = {
@@ -92,7 +105,7 @@ describe("ProductController - getProductById", () => {
       status: jest.fn().mockReturnThis(),
     };
 
-    await ProductController.getProductById(req, res);
+    await productController.getProductById(req, res);
 
     expect(res.status).toHaveBeenCalledWith(404);
     expect(res.json).toHaveBeenCalledWith({
@@ -103,9 +116,11 @@ describe("ProductController - getProductById", () => {
 
   test("should return a JSON response with a status of 500 when there is an error", async () => {
     const errorMessage = "An error occurred";
-    ProductModel.getProductById = jest
-      .fn()
-      .mockRejectedValue(new Error(errorMessage));
+    const mockModel = {
+      getProductById: jest.fn().mockRejectedValue(new Error(errorMessage)),
+    };
+
+    const productController = new ProductController(mockModel, {});
 
     const req = { params: { id: 1 } };
     const res = {
@@ -113,7 +128,7 @@ describe("ProductController - getProductById", () => {
       status: jest.fn().mockReturnThis(),
     };
 
-    await ProductController.getProductById(req, res);
+    await productController.getProductById(req, res);
 
     expect(res.status).toHaveBeenCalledWith(500);
     expect(res.json).toHaveBeenCalledWith({
@@ -122,6 +137,8 @@ describe("ProductController - getProductById", () => {
     });
   });
 });
+
+// create
 
 describe("ProductController - createProduct", () => {
   test("should create a new product and return a JSON response with a status of 201 when successful", async () => {
@@ -136,7 +153,9 @@ describe("ProductController - createProduct", () => {
       },
     };
 
-    ProductModel.createProduct = jest.fn().mockResolvedValue();
+    const mockModel = {
+      createProduct: jest.fn().mockResolvedValue(),
+    };
 
     const sampleImageURL = "https://example.com/image1.jpg";
     const cloudinaryService = require("../services/cloudinaryService");
@@ -153,13 +172,18 @@ describe("ProductController - createProduct", () => {
       status: jest.fn().mockReturnThis(),
     };
 
-    await ProductController.createProduct(req, res);
+    const productController = new ProductController(mockModel, {});
+
+    await productController.createProduct(req, res);
 
     expect(res.status).toHaveBeenCalledWith(201);
     expect(res.json).toHaveBeenCalledWith({
       status: 201,
       message: "Produk berhasil ditambahkan!",
-      imageURL: sampleImageURL,
+      name: "ayam geprek",
+      description: "Description 1",
+      price: 10.0,
+      image: "https://example.com/image1.jpg",
     });
   });
 
@@ -176,9 +200,11 @@ describe("ProductController - createProduct", () => {
     };
 
     const errorMessage = "An error occurred";
-    ProductModel.createProduct = jest
-      .fn()
-      .mockRejectedValue(new Error(errorMessage));
+    const mockModel = {
+      createProduct: jest.fn().mockRejectedValue(new Error(errorMessage)),
+    };
+
+    const productController = new ProductController(mockModel, {});
 
     const cloudinaryService = require("../services/cloudinaryService");
     cloudinaryService.uploadCloudinary = jest.fn();
@@ -192,7 +218,7 @@ describe("ProductController - createProduct", () => {
       status: jest.fn().mockReturnThis(),
     };
 
-    await ProductController.createProduct(req, res);
+    await productController.createProduct(req, res);
 
     expect(res.status).toHaveBeenCalledWith(500);
     expect(res.json).toHaveBeenCalledWith({
@@ -217,7 +243,11 @@ describe("ProductController - updateProduct", () => {
       },
     };
 
-    ProductModel.updateProduct = jest.fn().mockResolvedValue();
+    const mockModel = {
+      updateProduct: jest.fn().mockResolvedValue(),
+    };
+
+    const productController = new ProductController(mockModel, {});
 
     const sampleImageURL = "https://example.com/updated_image.jpg";
     const cloudinaryService = require("../services/cloudinaryService");
@@ -234,12 +264,17 @@ describe("ProductController - updateProduct", () => {
       status: jest.fn().mockReturnThis(),
     };
 
-    await ProductController.updateProduct(req, res);
+    await productController.updateProduct(req, res);
 
     expect(res.status).toHaveBeenCalledWith(201);
     expect(res.json).toHaveBeenCalledWith({
       status: 201,
       message: "Produk berhasil diperbarui!",
+      product_id: 1,
+      name: "Updated Product",
+      description: "Updated Description",
+      price: 20.0,
+      image: "https://example.com/updated_image.jpg",
     });
   });
 
@@ -257,9 +292,11 @@ describe("ProductController - updateProduct", () => {
     };
 
     const errorMessage = "An error occurred";
-    ProductModel.updateProduct = jest
-      .fn()
-      .mockRejectedValue(new Error(errorMessage));
+    const mockModel = {
+      updateProduct: jest.fn().mockRejectedValue(new Error(errorMessage)),
+    };
+
+    const productController = new ProductController(mockModel, {});
 
     const cloudinaryService = require("../services/cloudinaryService");
     cloudinaryService.uploadCloudinary = jest.fn();
@@ -273,7 +310,7 @@ describe("ProductController - updateProduct", () => {
       status: jest.fn().mockReturnThis(),
     };
 
-    await ProductController.updateProduct(req, res);
+    await productController.updateProduct(req, res);
 
     expect(res.status).toHaveBeenCalledWith(500);
     expect(res.json).toHaveBeenCalledWith({
@@ -294,13 +331,18 @@ describe("ProductController - deleteProduct", () => {
       status: jest.fn().mockReturnThis(),
     };
 
-    ProductModel.deleteProduct = jest.fn().mockResolvedValue(productId);
+    const mockModel = {
+      deleteProduct: jest.fn().mockResolvedValue(productId),
+    };
 
-    await ProductController.deleteProduct(req, res);
+    const productController = new ProductController(mockModel, {});
+
+    await productController.deleteProduct(req, res);
 
     expect(res.status).toHaveBeenCalledWith(201);
     expect(res.json).toHaveBeenCalledWith({
       status: 201,
+      id: productId,
       message: "Produk berhasil dihapus!",
     });
   });
@@ -311,9 +353,11 @@ describe("ProductController - deleteProduct", () => {
     };
 
     const errorMessage = "An error occurred";
-    ProductModel.deleteProduct = jest
-      .fn()
-      .mockRejectedValue(new Error(errorMessage));
+    const mockModel = {
+      deleteProduct: jest.fn().mockRejectedValue(new Error(errorMessage)),
+    };
+
+    const productController = new ProductController(mockModel, {});
 
     const req = sampleReq;
     const res = {
@@ -321,7 +365,7 @@ describe("ProductController - deleteProduct", () => {
       status: jest.fn().mockReturnThis(),
     };
 
-    await ProductController.deleteProduct(req, res);
+    await productController.deleteProduct(req, res);
 
     expect(res.status).toHaveBeenCalledWith(500);
     expect(res.json).toHaveBeenCalledWith({

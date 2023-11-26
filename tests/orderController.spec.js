@@ -1,5 +1,4 @@
 const OrderController = require("../controllers/OrderController");
-const OrderModel = require("../models/OrderModel");
 const db = require("../db/db");
 
 describe("OrderController - getAllOrders", () => {
@@ -29,7 +28,11 @@ describe("OrderController - getAllOrders", () => {
       },
     ];
 
-    jest.spyOn(OrderModel, "getAllOrders").mockResolvedValue(mockData);
+    const mockModel = {
+      getAllOrders: jest.fn().mockResolvedValue(mockData),
+    };
+
+    const orderController = new OrderController(mockModel, {});
 
     const req = {};
     const res = {
@@ -37,23 +40,27 @@ describe("OrderController - getAllOrders", () => {
       status: jest.fn().mockReturnThis(),
     };
 
-    await OrderController.getAllOrders(req, res);
+    await orderController.getAllOrders(req, res);
 
     expect(res.status).toBeCalledWith(200);
     expect(res.json).toBeCalledWith({ data: mockData });
   });
 
   test("should return a 500 Internal Server Error response when an error occurs", async () => {
-    jest.spyOn(OrderModel, "getAllOrders").mockRejectedValue(new Error("Sample error"));
-  
+    const mockModel = {
+      getAllOrders: jest.fn().mockRejectedValue(new Error("Sample error")),
+    };
+
+    const orderController = new OrderController(mockModel, {});
+
     const req = {};
     const res = {
       json: jest.fn(),
       status: jest.fn().mockReturnThis(),
     };
-  
-    await OrderController.getAllOrders(req, res);
-  
+
+    await orderController.getAllOrders(req, res);
+
     expect(res.status).toBeCalledWith(500);
     expect(res.json).toBeCalledWith({ status: 500, message: "Sample error" });
   });
@@ -74,7 +81,11 @@ describe("OrderController - getOrderById", () => {
       status: "Belum Bayar",
     };
 
-    jest.spyOn(OrderModel, "getOrderById").mockResolvedValue(mockOrder);
+    const mockModel = {
+      getOrderById: jest.fn().mockResolvedValue(mockOrder),
+    };
+
+    const orderController = new OrderController(mockModel, {});
 
     const req = { params: { id: orderId } };
     const res = {
@@ -82,7 +93,7 @@ describe("OrderController - getOrderById", () => {
       status: jest.fn().mockReturnThis(),
     };
 
-    await OrderController.getOrderById(req, res);
+    await orderController.getOrderById(req, res);
 
     expect(res.status).toBeCalledWith(200);
     expect(res.json).toBeCalledWith({ data: mockOrder });
@@ -91,7 +102,11 @@ describe("OrderController - getOrderById", () => {
   test("should return a JSON response with a status of 404 when data is not found", async () => {
     const orderId = 999;
 
-    jest.spyOn(OrderModel, "getOrderById").mockResolvedValue(null);
+    const mockModel = {
+      getOrderById: jest.fn().mockResolvedValue(null),
+    };
+
+    const orderController = new OrderController(mockModel, {});
 
     const req = { params: { id: orderId } };
     const res = {
@@ -99,7 +114,7 @@ describe("OrderController - getOrderById", () => {
       status: jest.fn().mockReturnThis(),
     };
 
-    await OrderController.getOrderById(req, res);
+    await orderController.getOrderById(req, res);
 
     expect(res.status).toBeCalledWith(404);
     expect(res.json).toBeCalledWith({
@@ -111,9 +126,11 @@ describe("OrderController - getOrderById", () => {
     const orderId = 1;
 
     const errorMessage = "An error occurred";
-    jest
-      .spyOn(OrderModel, "getOrderById")
-      .mockRejectedValue(new Error(errorMessage));
+    const mockModel = {
+      getOrderById: jest.fn().mockRejectedValue(new Error(errorMessage)),
+    };
+
+    const orderController = new OrderController(mockModel, {});
 
     const req = { params: { id: orderId } };
     const res = {
@@ -121,7 +138,7 @@ describe("OrderController - getOrderById", () => {
       status: jest.fn().mockReturnThis(),
     };
 
-    await OrderController.getOrderById(req, res);
+    await orderController.getOrderById(req, res);
 
     expect(res.status).toBeCalledWith(500);
     expect(res.json).toBeCalledWith({
@@ -136,9 +153,8 @@ describe("OrderController - createOrder", () => {
     const orderId = 1;
     const requestBody = {
       product_id: 1,
-      product_name: "ayam geprek",
+      product_name: "paket ayam geprek",
       quantity: 5,
-      total_amount: 100.0,
       name: "John Doe",
       telephone: "123-456-7890",
       address: "123 Main St",
@@ -150,13 +166,24 @@ describe("OrderController - createOrder", () => {
       status: jest.fn().mockReturnThis(),
     };
 
-    await OrderController.createOrder(req, res);
+    const mockModel = {
+      createOrder: jest.fn().mockResolvedValue({ id: orderId }),
+    };
+
+    const orderController = new OrderController(mockModel, db);
+    await orderController.createOrder(req, res);
 
     expect(res.status).toBeCalledWith(201);
     expect(res.json).toBeCalledWith({
       status: 201,
-      order_id: expect.objectContaining({ id: expect.any(Number) }), // Updated expectation
       message: "Data order berhasil ditambahkan!",
+      order_id: { id: orderId },
+      product_name: "paket ayam geprek",
+      quantity: 5,
+      total_amount: 75000,
+      name: "John Doe",
+      telephone: "123-456-7890",
+      address: "123 Main St",
     });
   });
 
@@ -169,9 +196,9 @@ describe("OrderController - createOrder", () => {
       address: "123 Main St",
     };
 
-    jest.spyOn(db("products"), "where").mockReturnValue({
-      first: jest.fn().mockResolvedValue(null),
-    });
+    const mockModel = {
+      createProduct: jest.fn().mockResolvedValue(null),
+    };
 
     const req = { body: requestBody };
     const res = {
@@ -179,7 +206,8 @@ describe("OrderController - createOrder", () => {
       status: jest.fn().mockReturnThis(),
     };
 
-    await OrderController.createOrder(req, res);
+    const orderController = new OrderController(mockModel, db);
+    await orderController.createOrder(req, res);
 
     expect(res.status).toBeCalledWith(404);
     expect(res.json).toBeCalledWith({
@@ -188,21 +216,21 @@ describe("OrderController - createOrder", () => {
   });
 
   test("should handle errors and return a JSON response with a status of 500 and an error message", async () => {
-    const orderId = 1;
-
     const errorMessage =
       "Cannot destructure property 'product_name' of 'req.body' as it is undefined.";
-    jest
-      .spyOn(OrderModel, "getOrderById")
-      .mockRejectedValue(new Error(errorMessage));
+    const mockModel = {
+      createOrder: jest.fn().mockRejectedValue(new Error(errorMessage)),
+    };
 
-    const req = { params: { id: orderId } };
+    const orderController = new OrderController(mockModel, {});
+
+    const req = {};
     const res = {
       json: jest.fn(),
       status: jest.fn().mockReturnThis(),
     };
 
-    await OrderController.createOrder(req, res);
+    await orderController.createOrder(req, res);
 
     expect(res.status).toBeCalledWith(500);
     expect(res.json).toBeCalledWith({
@@ -223,13 +251,11 @@ describe("OrderController - updateOrder", () => {
       address: "123 Main St",
     };
 
-    jest.spyOn(db("products"), "where").mockReturnValue({
-      first: jest
-        .fn()
-        .mockResolvedValue({ id: 1, name: "ayam geprek", price: 20.0 }),
-    });
+    const mockModel = {
+      updateOrder: jest.fn().mockResolvedValue({ id: orderId }),
+    };
 
-    jest.spyOn(OrderModel, "updateOrder").mockResolvedValue();
+    const orderController = new OrderController(mockModel, db);
 
     const req = { params: { id: orderId }, body: requestBody };
     const res = {
@@ -237,12 +263,19 @@ describe("OrderController - updateOrder", () => {
       status: jest.fn().mockReturnThis(),
     };
 
-    await OrderController.updateOrder(req, res);
+    await orderController.updateOrder(req, res);
 
     expect(res.status).toBeCalledWith(201);
     expect(res.json).toBeCalledWith({
       status: 201,
       message: "Data order berhasil diperbarui!",
+      order_id: orderId,
+      product_name: "ayam geprek",
+      quantity: 5,
+      total_amount: 60000,
+      name: "John Doe",
+      telephone: "123-456-7890",
+      address: "123 Main St",
     });
   });
 
@@ -255,9 +288,9 @@ describe("OrderController - updateOrder", () => {
       address: "123 Main St",
     };
 
-    jest.spyOn(db("products"), "where").mockReturnValue({
-      first: jest.fn().mockResolvedValue(null),
-    });
+    const mockModel = {
+      updateOrder: jest.fn().mockResolvedValue(null),
+    };
 
     const req = { params: { id: 1 }, body: requestBody };
     const res = {
@@ -265,7 +298,8 @@ describe("OrderController - updateOrder", () => {
       status: jest.fn().mockReturnThis(),
     };
 
-    await OrderController.updateOrder(req, res);
+    const orderController = new OrderController(mockModel, db);
+    await orderController.updateOrder(req, res);
 
     expect(res.status).toBeCalledWith(404);
     expect(res.json).toBeCalledWith({
@@ -274,33 +308,21 @@ describe("OrderController - updateOrder", () => {
   });
 
   test("should handle errors and return a JSON response with a status of 500 and an error message", async () => {
-    const orderId = 1;
-    const requestBody = {
-      product_name: "ayam geprek",
-      quantity: 5,
-      name: "John Doe",
-      telephone: "123-456-7890",
-      address: "123 Main St",
+    const errorMessage =
+      "Cannot destructure property 'product_name' of 'req.body' as it is undefined.";
+    const mockModel = {
+      updateOrder: jest.fn().mockRejectedValue(new Error(errorMessage)),
     };
 
-    const errorMessage = "Database error";
-    jest.spyOn(db("products"), "where").mockReturnValue({
-      first: jest
-        .fn()
-        .mockResolvedValue({ id: 1, name: "ayam geprek", price: 20.0 }),
-    });
+    const orderController = new OrderController(mockModel, {});
 
-    jest
-      .spyOn(OrderModel, "updateOrder")
-      .mockRejectedValue(new Error(errorMessage));
-
-    const req = { params: { id: orderId }, body: requestBody };
+    const req = { params: { id: 1 } };
     const res = {
       json: jest.fn(),
       status: jest.fn().mockReturnThis(),
     };
 
-    await OrderController.updateOrder(req, res);
+    await orderController.updateOrder(req, res);
 
     expect(res.status).toBeCalledWith(500);
     expect(res.json).toBeCalledWith({
@@ -315,7 +337,11 @@ describe("OrderController - updateOrderStatus", () => {
     const orderId = 1;
     const newStatus = "Dikirim";
 
-    jest.spyOn(OrderModel, "updateOrderStatus").mockResolvedValue();
+    const mockModel = {
+      updateOrderStatus: jest.fn().mockResolvedValue(),
+    };
+
+    const orderController = new OrderController(mockModel, {});
 
     const req = { params: { id: orderId }, body: { newStatus } };
     const res = {
@@ -323,7 +349,7 @@ describe("OrderController - updateOrderStatus", () => {
       status: jest.fn().mockReturnThis(),
     };
 
-    await OrderController.updateOrderStatus(req, res);
+    await orderController.updateOrderStatus(req, res);
 
     expect(res.status).toBeCalledWith(200);
     expect(res.json).toBeCalledWith({
@@ -337,9 +363,11 @@ describe("OrderController - updateOrderStatus", () => {
     const newStatus = "Dikirim";
     const errorMessage = "Database error";
 
-    jest
-      .spyOn(OrderModel, "updateOrderStatus")
-      .mockRejectedValue(new Error(errorMessage));
+    const mockModel = {
+      updateOrderStatus: jest.fn().mockRejectedValue(new Error(errorMessage)),
+    };
+
+    const orderController = new OrderController(mockModel, {});
 
     const req = { params: { id: orderId }, body: { newStatus } };
     const res = {
@@ -347,7 +375,7 @@ describe("OrderController - updateOrderStatus", () => {
       status: jest.fn().mockReturnThis(),
     };
 
-    await OrderController.updateOrderStatus(req, res);
+    await orderController.updateOrderStatus(req, res);
 
     expect(res.status).toBeCalledWith(500);
     expect(res.json).toBeCalledWith({
@@ -361,7 +389,11 @@ describe("OrderController - deleteOrder", () => {
   test("should delete an order and return a JSON response with a status of 201 when successful", async () => {
     const orderId = 1;
 
-    jest.spyOn(OrderModel, "deleteOrder").mockResolvedValue(orderId);
+    const mockModel = {
+      deleteOrder: jest.fn().mockResolvedValue(orderId),
+    };
+
+    const orderController = new OrderController(mockModel, {});
 
     const req = { params: { id: orderId } };
     const res = {
@@ -369,13 +401,13 @@ describe("OrderController - deleteOrder", () => {
       status: jest.fn().mockReturnThis(),
     };
 
-    await OrderController.deleteOrder(req, res);
+    await orderController.deleteOrder(req, res);
 
     expect(res.status).toBeCalledWith(201);
     expect(res.json).toBeCalledWith({
       status: 201,
       message: "Data order berhasil dihapus!",
-      deletedOrderId: orderId,
+      id: orderId,
     });
   });
 
@@ -383,9 +415,11 @@ describe("OrderController - deleteOrder", () => {
     const orderId = 1;
     const errorMessage = "Database error";
 
-    jest
-      .spyOn(OrderModel, "deleteOrder")
-      .mockRejectedValue(new Error(errorMessage));
+    const mockModel = {
+      deleteOrder: jest.fn().mockRejectedValue(new Error(errorMessage)),
+    };
+
+    const orderController = new OrderController(mockModel, {});
 
     const req = { params: { id: orderId } };
     const res = {
@@ -393,7 +427,7 @@ describe("OrderController - deleteOrder", () => {
       status: jest.fn().mockReturnThis(),
     };
 
-    await OrderController.deleteOrder(req, res);
+    await orderController.deleteOrder(req, res);
 
     expect(res.status).toBeCalledWith(500);
     expect(res.json).toBeCalledWith({

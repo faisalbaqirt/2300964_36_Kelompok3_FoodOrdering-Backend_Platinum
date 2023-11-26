@@ -247,6 +247,58 @@
         ]
       }
     },
+    "/profiles": {
+      "get": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Get a user's profile",
+        "description": "Retrieve a user's profile with Authorization.",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "integer",
+                  "example": 200
+                },
+                "id": {
+                  "type": "integer"
+                },
+                "username": {
+                  "type": "string"
+                },
+                "email": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "photoURL": {
+                  "type": "string"
+                },
+                "role": {
+                  "type": "string"
+                }    
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
     "/profile/{id}": {
       "put": {
         "tags": [

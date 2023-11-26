@@ -11,7 +11,8 @@ class AuthenticationController {
   }
 
   setFolderName(req) {
-    const isSimulation = req.originalUrl.includes("/simulation/profile");
+    const isSimulation =
+      req.originalUrl && req.originalUrl.includes("/simulation/profile");
     return isSimulation ? "user-simulation" : "users";
   }
 
@@ -19,19 +20,28 @@ class AuthenticationController {
     try {
       const { email, username, password } = req.body;
 
-      const encryptedPassword = bcrypt.hashSync(password.toString(), 10);
+      const encryptedPassword = bcrypt.hashSync(password, 10);
       const user = await this.model.registerUser(
         username,
         email,
         encryptedPassword
       );
-      res.status(201).json({
-        id: user[0].id,
-        username: user[0].username,
-        message: "User registration successfully!",
-      });
+      if (user && user[0]) {
+        res.status(201).json({
+          id: user[0].id,
+          username: user[0].username,
+          message: "User registration successfully!",
+        });
+      } else {
+        res.status(500).json({
+          message: "An error occurred while registering the user",
+        });
+      }
     } catch (error) {
       console.error(error);
+      res.status(500).json({
+        message: "Terjadi kesalahan saat mendaftarkan pengguna",
+      });
     }
   }
 
@@ -45,10 +55,7 @@ class AuthenticationController {
         return res.json({ message: "user not found" });
       }
 
-      const isPasswordValid = await bcrypt.compare(
-        password.toString(),
-        user.password
-      );
+      const isPasswordValid = await bcrypt.compare(password, user.password);
       if (!isPasswordValid) {
         return res.json({ message: "Wrong Password" });
       }
@@ -70,6 +77,9 @@ class AuthenticationController {
       });
     } catch (error) {
       console.error(error);
+      res.status(500).json({
+        message: "Login failed",
+      });
     }
   }
 
@@ -77,12 +87,25 @@ class AuthenticationController {
     res.json(req.user);
   }
 
+  profiles(req, res) {
+    const data = req.user;
+    res.status(200).json({
+      status: 200,
+      id: data.id,
+      username: data.username,
+      email: data.email,
+      name: data.name,
+      photoURL: data.photo,
+      role: data.role,
+    });
+  }
+
   async editProfile(req, res) {
     try {
       const { username, email, name, password } = req.body;
       const photo = req.file.path;
 
-      const encryptedPassword = bcrypt.hashSync(password.toString(), 10);
+      const encryptedPassword = bcrypt.hashSync(password, 10);
 
       // upload gambar ke Cloudinary
       const folderName = this.setFolderName(req);
@@ -102,16 +125,14 @@ class AuthenticationController {
         photoURL
       );
 
-      res
-        .status(201)
-        .json({
-          message: "Profil berhasil diperbarui",
-          id: req.params.id,
-          username: username,
-          email: email,
-          name: name,
-          photo: photoURL,
-        });
+      res.status(201).json({
+        message: "Profil berhasil diperbarui",
+        id: req.params.id,
+        username: username,
+        email: email,
+        name: name,
+        photo: photoURL,
+      });
     } catch (error) {
       res
         .status(500)

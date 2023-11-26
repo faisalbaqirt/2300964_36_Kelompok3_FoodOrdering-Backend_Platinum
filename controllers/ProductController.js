@@ -8,7 +8,8 @@ class ProductController {
   }
 
   setFolderName(req) {
-    const isSimulation = req.originalUrl.includes("/simulation/products");
+    const isSimulation =
+      req.originalUrl && req.originalUrl.includes("/simulation/products");
     return isSimulation ? "product-simulation" : "products";
   }
 

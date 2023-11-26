@@ -37,6 +37,7 @@ const authControllerSimulation = new AuthenticationController(new UserModel(dbSi
 
 router.post("/register", authControllerSimulation.signUp.bind(authControllerSimulation));
 router.post("/login", authControllerSimulation.login.bind(authControllerSimulation));
+router.get("/profiles", isAuthenticated, authControllerSimulation.profiles.bind(authControllerSimulation));
 router.put(
   "/profile/:id",
   isAuthenticated,
